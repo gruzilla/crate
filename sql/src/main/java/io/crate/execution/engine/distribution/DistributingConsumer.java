@@ -126,13 +126,17 @@ public class DistributingConsumer implements RowConsumer {
         if (allLoaded) {
             forwardResults(it, true);
         } else {
-            it.loadNextBatch().whenComplete((r, t) -> {
-                if (t == null) {
-                    consumeIt(it);
-                } else {
-                    forwardFailure(it, t);
-                }
-            });
+            try {
+                it.loadNextBatch().whenComplete((r, t) -> {
+                    if (t == null) {
+                        consumeIt(it);
+                    } else {
+                        forwardFailure(it, t);
+                    }
+                });
+            } catch (Throwable t) {
+                forwardFailure(it, t);
+            }
         }
     }
 
